@@ -1,0 +1,296 @@
+{% extends 'events/admin/base_admin.html' %}
+
+{% block title %}Users - Pluuto Admin{% endblock %}
+{% block page_title %}Users{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="description-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <span><i class="fa-solid fa-users"></i> All Users</span>
+        <span class="badge badge-secondary" style="font-weight: 400;">{{ page_obj.paginator.count }} users</span>
+    </div>
+
+    <div style="padding: 1rem; border-bottom: 1px solid var(--border-color); background: var(--card-bg);">
+        <form method="get" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+            <div style="flex: 1; min-width: 200px;">
+                <label class="form-label" style="margin-bottom: 0.5rem; display: block; font-size: 12px;">Search</label>
+                <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Name, phone, email..."
+                    class="form-control" style="width: 100%;">
+            </div>
+
+            <div style="min-width: 150px;">
+                <label class="form-label" style="margin-bottom: 0.5rem; display: block; font-size: 12px;">User
+                    Type</label>
+                <select name="user_type" class="form-control">
+                    <option value="">All Types</option>
+                    {% if request.GET.user_type == 'regular' %}
+                    <option value="regular" selected>Regular User</option>
+                    {% else %}
+                    <option value="regular">Regular User</option>
+                    {% endif %}
+
+                    {% if request.GET.user_type == 'artist' %}
+                    <option value="artist" selected>Artist</option>
+                    {% else %}
+                    <option value="artist">Artist</option>
+                    {% endif %}
+
+                    {% if request.GET.user_type == 'event_organizer' %}
+                    <option value="event_organizer" selected>Event Organizer</option>
+                    {% else %}
+                    <option value="event_organizer">Event Organizer</option>
+                    {% endif %}
+
+                    {% if request.GET.user_type == 'experience_provider' %}
+                    <option value="experience_provider" selected>Experience Provider</option>
+                    {% else %}
+                    <option value="experience_provider">Experience Provider</option>
+                    {% endif %}
+
+                    {% if request.GET.user_type == 'venue_owner' %}
+                    <option value="venue_owner" selected>Venue Owner</option>
+                    {% else %}
+                    <option value="venue_owner">Venue Owner</option>
+                    {% endif %}
+                </select>
+            </div>
+
+
+
+            <div style="min-width: 120px;">
+                <label class="form-label" style="margin-bottom: 0.5rem; display: block; font-size: 12px;">Status</label>
+                <select name="is_active" class="form-control">
+                    <option value="">All Status</option>
+                    {% if request.GET.is_active == 'true' %}
+                    <option value="true" selected>Active</option>
+                    {% else %}
+                    <option value="true">Active</option>
+                    {% endif %}
+
+                    {% if request.GET.is_active == 'false' %}
+                    <option value="false" selected>Inactive</option>
+                    {% else %}
+                    <option value="false">Inactive</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="submit" class="action-btn btn-primary">
+                    <i class="fa-solid fa-filter"></i> Filter
+                </button>
+                <a href="{% url 'admin_user_list' %}" class="action-btn btn-outline">
+                    <i class="fa-solid fa-rotate-right"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Full Name</th>
+                <th>Phone / Email</th>
+                <th>User Type</th>
+
+                <th>Status</th>
+                <th style="text-align: right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td style="color: var(--text-secondary);">#{{ user.id }}</td>
+                <td>
+                    <div style="font-weight: 600; color: var(--text-primary);">{{ user.full_name|default:"-" }}</div>
+                </td>
+                <td>
+                    <div>{{ user.phone_number }}</div>
+                    {% if user.email %}
+                    <div style="font-size: 12px; color: var(--text-secondary);">{{ user.email }}</div>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if user.user_type == 'regular' %}
+                    <span class="badge badge-secondary">Regular</span>
+                    {% else %}
+                    <span class="badge" style="background: #8b5cf6; color: white;">
+                        {{ user.get_user_type_display }}
+                    </span>
+                    {% if user.host_category %}
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                        <i class="fa-solid fa-tag"></i> {{ user.host_category.name }}
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if user.is_active %}
+                    <span class="badge badge-success">Active</span>
+                    {% else %}
+                    <span class="badge badge-warning">Inactive</span>
+                    {% endif %}
+                </td>
+                <td style="text-align: right;">
+                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                        <a href="{% url 'admin_user_detail' user.pk %}" class="action-btn btn-outline">Detail</a>
+                        {% if not user.is_superuser %}
+                        <button type="button"
+                            onclick="showPromoteModal({{ user.id }}, '{{ user.full_name|escapejs }}', '{{ user.user_type }}', '{{ user.host_category.id|default:'' }}')"
+                            class="action-btn btn-primary">
+                            <i class="fa-solid fa-arrow-up"></i> Promote
+                        </button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 2rem;">No users found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if is_paginated %}
+    <div
+        style="padding: 1rem; border-top: 1px solid var(--border-color); display: flex; justify-content: center; align-items: center; gap: 1rem;">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}"
+            class="action-btn btn-outline">Previous</a>
+        {% else %}
+        <span class="action-btn btn-outline" style="opacity: 0.5; cursor: default;">Previous</span>
+        {% endif %}
+
+        <span style="color: var(--text-secondary); font-size: 0.875rem;">Page {{ page_obj.number }} of
+            {{page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}"
+            class="action-btn btn-outline">Next</a>
+        {% else %}
+        <span class="action-btn btn-outline" style="opacity: 0.5; cursor: default;">Next</span>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<div id="promoteModal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div
+        style="background: var(--card-bg); border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <h3 style="margin: 0 0 1rem 0; color: var(--text-primary); font-size: 20px;">Promote User</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Change user type for <strong id="modalUserName"></strong>
+        </p>
+
+        <form id="promoteForm" method="post" action="">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="promote">
+            <div class="form-group">
+                <label class="form-label">Select User Type</label>
+                <select name="user_type" id="modalUserType" class="form-control" required
+                    onchange="handleUserTypeChange(this.value)">
+                    <option value="regular">Regular User</option>
+                    <option value="artist">Artist</option>
+                    <option value="event_organizer">Event Organizer</option>
+                    <option value="experience_provider">Experience Provider</option>
+                    <option value="venue_owner">Venue Owner</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="hostCategoryDiv" style="display:none; margin-top: 1rem;">
+                <label class="form-label">Assign Host Category <span style="color: red;">*</span></label>
+                <select name="host_category" id="modalHostCategory" class="form-control">
+                    <option value="">Select Category</option>
+                    <!-- Options populated by JS -->
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem; justify-content: flex-end;">
+                <button type="button" onclick="hidePromoteModal()" class="action-btn btn-outline">Cancel</button>
+                <button type="submit" class="action-btn btn-primary">
+                    <i class="fa-solid fa-check"></i> Confirm
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Load Categories from Django Context
+    const hostCategories = {{ host_categories_json| safe }};
+
+    function showPromoteModal(userId, userName, currentType, currentCategoryId) {
+        document.getElementById('modalUserName').textContent = userName;
+        document.getElementById('modalUserType').value = currentType;
+        document.getElementById('promoteForm').action = '/admin/users/' + userId + '/promote/';
+        document.getElementById('promoteModal').style.display = 'flex';
+
+        // Trigger change to set initial state
+        handleUserTypeChange(currentType);
+
+        // Pre-select category if available
+        if (currentCategoryId && document.getElementById('modalHostCategory')) {
+            document.getElementById('modalHostCategory').value = currentCategoryId;
+        }
+    }
+
+    function hidePromoteModal() {
+        document.getElementById('promoteModal').style.display = 'none';
+    }
+
+    function handleUserTypeChange(userType) {
+        const categoryDiv = document.getElementById('hostCategoryDiv');
+        const categorySelect = document.getElementById('modalHostCategory');
+
+        if (userType === 'regular' || userType === '') {
+            categoryDiv.style.display = 'none';
+            categorySelect.removeAttribute('required');
+            categorySelect.value = '';
+            return;
+        }
+
+        // Filter categories
+        // allowed_user_type can be specific type or null/empty (meaning valid for all)
+        const relevantCategories = hostCategories.filter(cat =>
+            !cat.allowed_user_type || cat.allowed_user_type === userType
+        );
+
+        // Populate Select
+        categorySelect.innerHTML = '<option value="">Select Category</option>';
+        if (relevantCategories.length > 0) {
+            relevantCategories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = cat.name;
+                categorySelect.appendChild(option);
+            });
+            categoryDiv.style.display = 'block';
+            categorySelect.setAttribute('required', 'required');
+        } else {
+            // If no categories found for this type, maybe hide or show "No categories"
+            // For now, let's keep it optional if none exist? Or show empty.
+            const option = document.createElement('option');
+            option.value = "";
+            option.textContent = "No categories available";
+            option.disabled = true;
+            categorySelect.appendChild(option);
+            categoryDiv.style.display = 'block';
+            // If no categories, we can't require it? Or we should require and block?
+            // User requested "should mandatory", so block if none
+            categorySelect.removeAttribute('required'); // Or keep required to force creation?
+            // Let's keep display but maybe display a warning.
+        }
+    }
+
+    document.getElementById('promoteModal').addEventListener('click', function (e) {
+        if (e.target === this) {
+            hidePromoteModal();
+        }
+    });
+</script>
+{% endblock %}

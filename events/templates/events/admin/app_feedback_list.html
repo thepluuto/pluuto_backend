@@ -1,0 +1,78 @@
+{% extends 'events/admin/base_admin.html' %}
+
+{% block title %}App Feedback - Pluuto Admin{% endblock %}
+{% block page_title %}App Feedback{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="description-header"
+        style="display: flex; justify-content: space-between; align-items: center; border-bottom: none;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <span><i class="fa-solid fa-comment-dots"></i> App Feedback</span>
+        </div>
+    </div>
+
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Rating</th>
+                <th>Text</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for feedback in feedbacks %}
+            <tr>
+                <td style="color: var(--text-secondary); font-family: monospace;">#{{ feedback.id }}</td>
+                <td>
+                    {% if feedback.user %}
+                    <div style="font-weight: 500;">{{ feedback.user.full_name|default:feedback.user.phone_number }}
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">{{ feedback.user.email }}</div>
+                    {% else %}
+                    <div style="font-weight: 500; color: var(--text-secondary);">Anonymous</div>
+                    {% endif %}
+                </td>
+                <td>
+                    <div
+                        style="font-weight: 600; color: {% if feedback.rating >= 4 %}var(--success-color){% elif feedback.rating == 3 %}var(--warning-color){% else %}var(--danger-color){% endif %};">
+                        {{ feedback.rating }} / 5
+                    </div>
+                </td>
+                <td style="max-width: 300px;">
+                    <div style="color: var(--text-primary); white-space: normal; line-height: 1.4;">{{ feedback.text }}
+                    </div>
+                </td>
+                <td style="color: var(--text-secondary);">{{ feedback.created_at|date:"M d, Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem;">No feedback found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if is_paginated %}
+    <div
+        style="padding: 1rem; border-top: 1px solid var(--border-color); display: flex; justify-content: center; align-items: center; gap: 1rem;">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="action-btn btn-outline">Previous</a>
+        {% else %}
+        <span class="action-btn btn-outline" style="opacity: 0.5; cursor: default;">Previous</span>
+        {% endif %}
+
+        <span style="color: var(--text-secondary); font-size: 0.875rem;">Page {{ page_obj.number }} of {{
+            page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="action-btn btn-outline">Next</a>
+        {% else %}
+        <span class="action-btn btn-outline" style="opacity: 0.5; cursor: default;">Next</span>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

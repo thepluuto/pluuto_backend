@@ -1,0 +1,84 @@
+{% extends 'events/admin/base_admin.html' %}
+
+{% block title %}Host Categories - Pluuto Admin{% endblock %}
+{% block page_title %}Host Categories{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="description-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <span><i class="fa-solid fa-users-rectangle"></i> All Host Categories</span>
+        <a href="{% url 'admin_host_category_add' %}" class="action-btn btn-primary" style="font-size: 13px;">
+            <i class="fa-solid fa-plus"></i> New Category
+        </a>
+    </div>
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Belongs to Type</th>
+                <th>Status</th>
+                <th>Created At</th>
+                <th style="text-align: right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+            <tr>
+                <td>
+                    <div style="font-weight: 600; color: var(--text-primary);">{{ category.name }}</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">{{ category.details|truncatechars:50 }}
+                    </div>
+                </td>
+                <td>
+                    {% if category.allowed_user_type %}
+                    <span class="badge badge-secondary">{{ category.get_allowed_user_type_display }}</span>
+                    {% else %}
+                    <span class="badge" style="background: #6b7280; color: white;">All Types</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if category.status == 'active' %}
+                    <span class="badge badge-success">Active</span>
+                    {% else %}
+                    <span class="badge badge-secondary">Inactive</span>
+                    {% endif %}
+                </td>
+                <td style="color: var(--text-secondary);">{{ category.created_at|date:"M d, Y" }}</td>
+                <td style="text-align: right;">
+                    <a href="{% url 'admin_host_category_edit' category.pk %}" class="action-btn btn-outline"
+                        style="padding: 2px 8px; font-size: 12px;">Edit</a>
+                    <a href="{% url 'admin_host_category_delete' category.pk %}" class="action-btn btn-danger"
+                        style="padding: 2px 8px; font-size: 12px; border-color: transparent;">
+                        <i class="fa-solid fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem;">No host categories found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if is_paginated %}
+    <div
+        style="padding: 1rem; border-top: 1px solid var(--border-color); display: flex; justify-content: center; align-items: center; gap: 1rem;">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="action-btn btn-outline">Previous</a>
+        {% else %}
+        <span class="action-btn btn-outline" style="opacity: 0.5; cursor: default;">Previous</span>
+        {% endif %}
+
+        <span style="color: var(--text-secondary); font-size: 0.875rem;">Page {{ page_obj.number }} of {{
+            page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="action-btn btn-outline">Next</a>
+        {% else %}
+        <span class="action-btn btn-outline" style="opacity: 0.5; cursor: default;">Next</span>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

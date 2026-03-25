@@ -1,0 +1,425 @@
+{% extends 'events/admin/base_admin.html' %}
+
+{% block title %}Event Details - Pluuto Admin{% endblock %}
+{% block page_title %}{% endblock %}
+
+{% block content %}
+<style>
+    /* Custom styles for this page */
+    .event-hero {
+        position: relative;
+        border-radius: var(--radius-lg);
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+        padding: 3rem;
+        margin-bottom: 2rem;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+
+    .event-hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.15;
+        z-index: 1;
+        filter: blur(20px);
+    }
+
+    .event-hero-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        gap: 2rem;
+        align-items: flex-start;
+    }
+
+    .event-thumbnail {
+        width: 160px;
+        height: 160px;
+        border-radius: var(--radius-lg);
+        object-fit: cover;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        background: #334155;
+    }
+
+    .event-meta-badge {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(4px);
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.025em;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .info-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        height: 100%;
+        transition: transform 0.2s;
+    }
+
+    .info-card:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .card-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .card-value {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .qr-card {
+        background: linear-gradient(to bottom right, #ffffff, #f8fafc);
+        border: 1px solid var(--border-color);
+        text-align: center;
+    }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 16px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-pill.approved {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-pill.pending {
+        background: #fef9c3;
+        color: #a16207;
+    }
+
+    .status-pill.rejected {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .status-pill.blocked {
+        background: #1e293b;
+        color: #f8fafc;
+    }
+
+    .action-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="event-hero">
+    {% if event.banner_image %}
+    <img src="{{ event.banner_image.url }}" class="event-hero-bg" alt="bg">
+    {% endif %}
+
+    <div class="event-hero-content">
+        {% if event.banner_image %}
+        <img src="{{ event.banner_image.url }}" class="event-thumbnail" alt="Event Banner">
+        {% else %}
+        <div class="event-thumbnail"
+            style="display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2);">
+            <i class="fa-solid fa-image fa-3x"></i>
+        </div>
+        {% endif %}
+
+        <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <span class="event-meta-badge">{{ event.category.name|default:"General" }}</span>
+                        {% if event.is_paid %}
+                        <span class="event-meta-badge"
+                            style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4); color: #6ee7b7;">Paid</span>
+                        {% else %}
+                        <span class="event-meta-badge"
+                            style="background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.4); color: #93c5fd;">Free</span>
+                        {% endif %}
+                    </div>
+                    <h1
+                        style="font-size: 2.25rem; font-weight: 800; line-height: 1.2; margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                        {{ event.title }}</h1>
+                    <div style="display: flex; items-align: center; gap: 1.5rem; opacity: 0.9; font-size: 0.95rem;">
+                        <span><i class="fa-regular fa-clock" style="margin-right: 6px;"></i> {{ event.start_time|date:"M
+                            j, Y • g:i A" }}</span>
+                        <span><i class="fa-solid fa-location-dot" style="margin-right: 6px;"></i> {{ event.location
+                            }}</span>
+                    </div>
+                </div>
+
+                {% if event.status == 'approved' %}
+                <span class="status-pill approved"><i class="fa-solid fa-check"></i> Live</span>
+                {% elif event.status == 'rejected' %}
+                <span class="status-pill rejected"><i class="fa-solid fa-xmark"></i> Rejected</span>
+                {% elif event.status == 'blocked' %}
+                <span class="status-pill blocked"><i class="fa-solid fa-ban"></i> Blocked</span>
+                {% else %}
+                <span class="status-pill pending"><i class="fa-solid fa-hourglass"></i> Reviewing</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; position: relative; z-index: 5;">
+
+    <!-- Left Column -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+        <!-- About Section -->
+        <div class="info-card">
+            <h3 class="card-title"
+                style="margin-bottom: 1rem; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                About this Event</h3>
+            <p style="color: var(--text-secondary); line-height: 1.7; font-size: 0.95rem; white-space: pre-wrap;">{{
+                event.description }}</p>
+
+            <div style="margin-top: 2rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                <div>
+                    <div class="card-label">Total Likes</div>
+                    <div class="card-value"><i class="fa-solid fa-heart"
+                            style="color: var(--danger-color); margin-right: 5px;"></i> {{ event.likes.count }}</div>
+                </div>
+                <div>
+                    <div class="card-label">Regular Price</div>
+                    <div class="card-value">{{ event.regular_price|default:"Free" }}</div>
+                </div>
+                <div>
+                    <div class="card-label">Offer Price</div>
+                    <div class="card-value">{{ event.offer_price|default:"-" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery -->
+        {% if event.gallery_images.exists %}
+        <div class="info-card">
+            <h3 class="card-title" style="margin-bottom: 1rem; font-size: 1.1rem;">Gallery</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px;">
+                {% for img in event.gallery_images.all %}
+                <a href="{{ img.image.url }}" target="_blank"
+                    style="display: block; border-radius: 8px; overflow: hidden; height: 120px; box-shadow: var(--shadow-sm);">
+                    <img src="{{ img.image.url }}"
+                        style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;"
+                        onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Event Rewards (Only for Approved) -->
+        {% if event.status == 'approved' %}
+        <div class="info-card" style="border-left: 4px solid var(--accent-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 class="card-title" style="margin: 0; font-size: 1.1rem;">🎁 Event Rewards Configuration</h3>
+                <span
+                    style="font-size: 0.75rem; color: var(--text-secondary); background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">Live
+                    Updates</span>
+            </div>
+
+            <form action="{% url 'admin_event_update_rewards' event.pk %}" method="post">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
+                    <div>
+                        <label class="card-label">Attendee Coins</label>
+                        <input type="number" name="attendee_coins" value="{{ event.attendee_coins|default:0 }}"
+                            class="form-input" placeholder="0">
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Points awarded per
+                            scan.</div>
+                    </div>
+                    <div>
+                        <label class="card-label">Scratch Prizes</label>
+                        <textarea name="scratch_prizes" class="form-textarea" style="min-height: 80px;"
+                            placeholder="Prize 1, Prize 2...">{{ event.scratch_prizes }}</textarea>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Comma-separated
+                            list of text prizes.</div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; text-align: right;">
+                    <button type="submit" class="action-btn btn-primary"
+                        style="padding-left: 1.5rem; padding-right: 1.5rem;">
+                        Update Rewards
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Right Column -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+        <!-- Organizer Card -->
+        <div class="info-card">
+            <h3 class="card-label" style="margin-bottom: 1rem;">Organizer</h3>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div
+                    style="width: 48px; height: 48px; background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 1.2rem;">
+                    {{ event.owner.full_name|first|upper }}
+                </div>
+                <div>
+                    <div style="font-weight: 700; color: var(--text-primary);">{{ event.owner.full_name }}</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">{{ event.owner.get_user_type_display }}
+                    </div>
+                </div>
+            </div>
+            <div
+                style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); font-size: 13px; color: var(--text-secondary);">
+                <i class="fa-regular fa-envelope"></i> {{ event.owner.email }}<br>
+                <i class="fa-solid fa-phone" style="margin-top: 6px;"></i> {{ event.owner.phone_number }}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="info-card">
+            <h3 class="card-label" style="margin-bottom: 1rem;">Detailed Views</h3>
+            <div class="action-grid">
+                <a href="{% url 'admin_booking_list' %}?event_id={{ event.id }}" class="info-card"
+                    style="padding: 1rem; text-align: center; background: #f0fdf4; border-color: #bbf7d0; display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; justify-content: center; height: auto;">
+                    <i class="fa-solid fa-users fa-2x" style="color: #166534;"></i>
+                    <span style="font-weight: 600; color: #166534; font-size: 0.9rem;">Bookings</span>
+                </a>
+                <a href="{% url 'admin_scan_result_list' %}?event_id={{ event.id }}" class="info-card"
+                    style="padding: 1rem; text-align: center; background: #eff6ff; border-color: #bfdbfe; display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; justify-content: center; height: auto;">
+                    <i class="fa-solid fa-qrcode fa-2x" style="color: #1e40af;"></i>
+                    <span style="font-weight: 600; color: #1e40af; font-size: 0.9rem;">Scans</span>
+                </a>
+            </div>
+
+            {% if event.payment_link or event.terms_document %}
+            <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                {% if event.payment_link %}
+                <a href="{{ event.payment_link }}" target="_blank" class="action-btn btn-outline"
+                    style="width: 100%; justify-content: space-between;">
+                    <span>Payment Link</span> <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+                {% endif %}
+                {% if event.terms_document %}
+                <a href="{{ event.terms_document.url }}" target="_blank" class="action-btn btn-outline"
+                    style="width: 100%; justify-content: space-between;">
+                    <span>Terms Document</span> <i class="fa-solid fa-file-pdf"></i>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- QR Code (If Approved) -->
+        {% if event.status == 'approved' and event.event_qr_code %}
+        <div class="info-card qr-card" style="padding: 0;">
+            <div
+                style="padding: 1.5rem; background: #1e293b; color: white; border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+                <h3 style="font-size: 1.1rem; font-weight: 700;">Check-in QR</h3>
+                <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 4px;">Use this at the venue entrance</p>
+            </div>
+            <div style="padding: 2rem;">
+                <img src="{{ event.event_qr_code.url }}" alt="QR Code"
+                    style="width: 180px; height: 180px; border-radius: 8px; border: 4px solid white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                <div
+                    style="font-family: monospace; font-size: 0.75rem; color: var(--text-secondary); margin-top: 1rem; background: #f1f5f9; padding: 4px; border-radius: 4px; display: inline-block;">
+                    {{ event.qr_code_token }}
+                </div>
+            </div>
+            <div style="padding: 1rem; border-top: 1px dashed var(--border-color);">
+                <a href="{{ event.event_qr_code.url }}" download="Event_QR_{{ event.id }}.png"
+                    class="action-btn btn-primary" style="width: 100%;">
+                    <i class="fa-solid fa-download" style="margin-right: 8px;"></i> Download
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Approval / Block Actions -->
+        <div class="info-card"
+            style="border-top: 4px solid {% if event.status == 'approved' %}#1e293b{% elif event.status == 'pending' %}var(--success-color){% else %}var(--danger-color){% endif %}">
+            <h3 class="card-label" style="margin-bottom: 1rem;">Administration</h3>
+
+            {% if event.status == 'pending' %}
+            <form action="{% url 'admin_event_approve' event.pk %}" method="post">
+                {% csrf_token %}
+                <div style="margin-bottom: 1rem;">
+                    <label class="card-label">Set Initial Coins</label>
+                    <input type="number" name="attendee_coins" class="form-input" placeholder="0">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label class="card-label">Initial Prizes</label>
+                    <textarea name="scratch_prizes" class="form-textarea" placeholder="Prizes..."
+                        style="min-height: 60px;"></textarea>
+                </div>
+                <button type="submit" class="action-btn btn-primary"
+                    style="width: 100%; justify-content: center; background: var(--success-color); border-color: var(--success-color);">
+                    <i class="fa-solid fa-check" style="margin-right: 8px;"></i> Approve & Live
+                </button>
+            </form>
+            <div style="height: 1px; background: var(--border-color); margin: 1rem 0;"></div>
+            <form action="{% url 'admin_event_reject' event.pk %}" method="post">
+                {% csrf_token %}
+                <textarea name="rejection_reason" class="form-textarea" placeholder="Reason..." required
+                    style="min-height: 60px; margin-bottom: 0.5rem;"></textarea>
+                <button type="submit" class="action-btn btn-danger" style="width: 100%; justify-content: center;">
+                    <i class="fa-solid fa-xmark" style="margin-right: 8px;"></i> Reject
+                </button>
+            </form>
+
+            {% elif event.status == 'approved' %}
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Need to take this event
+                down?</p>
+            <form action="{% url 'admin_event_block' event.pk %}" method="post">
+                {% csrf_token %}
+                <textarea name="block_reason" class="form-textarea" placeholder="Reason for blocking..." required
+                    style="min-height: 60px; margin-bottom: 0.5rem;"></textarea>
+                <button type="submit" class="action-btn btn-danger"
+                    style="width: 100%; justify-content: center; background: #1e293b; border-color: #1e293b; color: white;">
+                    <i class="fa-solid fa-ban" style="margin-right: 8px;"></i> Block Event
+                </button>
+            </form>
+
+            {% elif event.status == 'blocked' %}
+            <div
+                style="background: #fee2e2; color: #b91c1c; padding: 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1rem;">
+                <strong><i class="fa-solid fa-circle-info"></i> Blocked Reason:</strong><br>
+                {{ event.rejection_reason }}
+            </div>
+            <form action="{% url 'admin_event_unblock' event.pk %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="action-btn btn-primary" style="width: 100%; justify-content: center;">
+                    <i class="fa-solid fa-rotate-left" style="margin-right: 8px;"></i> Unblock
+                </button>
+            </form>
+            {% else %}
+            <div style="background: #fee2e2; color: #b91c1c; padding: 1rem; border-radius: 8px; font-size: 0.9rem;">
+                <strong>Rejected Criteria:</strong><br>
+                {{ event.rejection_reason }}
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}

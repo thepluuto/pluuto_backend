@@ -1,0 +1,282 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms and Conditions - Pluuto</title>
+    <link rel="icon" type="image/png" href="{% static 'events/img/favicon.png' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        crossorigin="anonymous" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --primary-bg-start: #0B0F19;
+            /* Deep dark blue */
+            --primary-bg-end: #1A2438;
+            /* Lighter dark blue */
+            --secondary-bg: #000000;
+            --text-dark: #FFFFFF;
+            --text-light: #A0AEC0;
+            --text-white: #FFFFFF;
+            --accent-color: #3182CE;
+            --nav-bg: rgba(11, 15, 25, 0.95);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            -webkit-font-smoothing: antialiased;
+            background: linear-gradient(135deg, var(--primary-bg-start) 0%, var(--primary-bg-end) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ----- Navbar ----- */
+        .navbar {
+            background-color: var(--primary-bg-start);
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+        }
+        
+        .navbar-brand img {
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .btn-admin-login {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-white);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-admin-login:hover {
+            background-color: var(--text-white);
+            color: var(--primary-bg-start);
+        }
+
+        /* ----- Main Content ----- */
+        main {
+            flex: 1;
+            padding: 60px 0;
+            color: var(--text-light);
+        }
+
+        .content-box {
+            background: rgba(26, 36, 56, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-title {
+            color: var(--text-white);
+            font-weight: 800;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+        }
+
+        .content-box h2 {
+            color: var(--text-white);
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .content-box p {
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            font-size: 1.05rem;
+        }
+
+        .content-box ul {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-box ul li {
+            line-height: 1.8;
+            margin-bottom: 0.4rem;
+            font-size: 1.05rem;
+        }
+
+        /* ----- Footer ----- */
+        footer {
+            padding: 1.5rem 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .content-box {
+                padding: 1.5rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar sticky-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="navbar-brand" href="{% url 'root_landing' %}">
+                <img src="{% static 'events/img/logo_white.png' %}" alt="Pluuto">
+            </a>
+            <a href="/admin/login/" class="btn btn-admin-login text-decoration-none">
+                Admin Login <i class="fa-solid fa-arrow-right-to-bracket ms-1"></i>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <main class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="content-box">
+                    <h1 class="page-title">Terms and Conditions for Pluuto</h1>
+                    <p><strong>Effective Date:</strong> March 15, 2026</p>
+                    <p>These Terms and Conditions ("Terms") govern your access to and use of the Pluuto mobile
+                        application and related services operated by Pluutoverse Enterprises LLP, located in Calicut,
+                        Kerala, India. By accessing or using the Pluuto application, you agree to be bound by these
+                        Terms.</p>
+
+                    <h2>1. About Pluuto</h2>
+                    <p>Pluuto is an event discovery platform that allows users to find events and experiences and allows
+                        event organizers to publish events. Users may also purchase event tickets through the platform
+                        where available.</p>
+
+                    <h2>2. User Accounts</h2>
+                    <p>To access certain features of the application, users may be required to create an account. Users
+                        may register using a phone number with OTP verification or through supported third&#8209;party
+                        login providers such as Google.</p>
+                    <p>Users are responsible for maintaining the confidentiality of their account credentials and for
+                        all activities that occur under their account.</p>
+
+                    <h2>3. Age Requirement</h2>
+                    <p>Pluuto is intended for users aged 13 years and above. Individuals under the age of 13 should use
+                        the application only under the supervision of a parent or guardian.</p>
+
+                    <h2>4. Event Listings</h2>
+                    <p>Event organizers may create accounts and submit events for listing on the Pluuto platform. All
+                        event submissions are subject to review and approval by the Pluuto administration team before
+                        they are published.</p>
+                    <p>Event listings on Pluuto are currently free of charge for organizers.</p>
+
+                    <h2>5. Event Organizer Responsibilities</h2>
+                    <p>Event organizers are solely responsible for the accuracy of event information, including event
+                        descriptions, schedules, venues, ticket prices, and any other event-related content.</p>
+                    <p>Pluuto acts only as a platform to facilitate event discovery and ticket purchases and is not
+                        responsible for the organization, management, or execution of events.</p>
+
+                    <h2>6. Ticket Purchases</h2>
+                    <p>Users may purchase event tickets through the Pluuto application where ticketing is enabled.
+                        Payments are processed through third&#8209;party payment gateways.</p>
+                    <p>Some events listed on Pluuto may redirect users to external ticketing platforms. In such cases,
+                        the purchase will be governed by the terms and policies of the respective third&#8209;party
+                        platform.</p>
+
+                    <h2>7. Refund Policy</h2>
+                    <p>Refund policies are determined by the respective event organizers. Pluuto does not control or
+                        guarantee refunds unless explicitly stated by the organizer of the event.</p>
+                    <p>Users should review the refund policy of the event before purchasing tickets.</p>
+
+                    <h2>8. Ticket Transfers</h2>
+                    <p>Users may transfer tickets to another person where such functionality is supported within the
+                        Pluuto platform.</p>
+
+                    <h2>9. Content Guidelines</h2>
+                    <p>Organizers must not publish events that involve illegal activities, scams, misleading
+                        information, harmful content, or activities that violate applicable laws.</p>
+                    <p>Pluuto reserves the right to remove or reject any event that violates these guidelines.</p>
+
+                    <h2>10. Account Suspension or Termination</h2>
+                    <p>Pluuto reserves the right to suspend or terminate user or organizer accounts if they are found to
+                        be violating these Terms, engaging in fraudulent activities, or misusing the platform.</p>
+
+                    <h2>11. Limitation of Liability</h2>
+                    <p>Pluuto is not responsible for any losses, damages, injuries, or issues arising from participation
+                        in events listed on the platform. All events are organized by independent third&#8209;party
+                        organizers.</p>
+
+                    <h2>12. Changes to These Terms</h2>
+                    <p>Pluuto may update these Terms from time to time. Continued use of the platform after any updates
+                        constitutes acceptance of the revised Terms.</p>
+
+                    <h2>13. Governing Law</h2>
+                    <p>These Terms shall be governed by and interpreted in accordance with the laws of India.</p>
+
+                    <h2>14. Contact Information</h2>
+                    <p>If you have any questions regarding these Terms, please contact:</p>
+                    <p>
+                        <strong>Company:</strong> Pluutoverse Enterprises LLP<br>
+                        <strong>Location:</strong> Calicut, Kerala, India<br>
+                        <strong>Email:</strong> pluutoenterprises@gmail.com
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <ul class="footer-links">
+                <li><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+                <li><a href="{% url 'terms_conditions' %}">Terms and Conditions</a></li>
+                <li><a href="{% url 'contact_us' %}">Contact Us</a></li>
+            </ul>
+        </div>
+    </footer>
+
+</body>
+
+</html>

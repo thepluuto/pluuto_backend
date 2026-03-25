@@ -1,0 +1,208 @@
+{% extends 'events/admin/base_admin.html' %}
+
+{% block title %}Request Details - Pluuto Admin{% endblock %}
+{% block page_title %}Host Request Details{% endblock %}
+
+{% block content %}
+<style>
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        padding: 1.5rem;
+        transition: transform 0.2s;
+    }
+
+    .info-card:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-title {
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 16px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-badge.pending {
+        background: #fef9c3;
+        color: #a16207;
+    }
+
+    .status-badge.approved {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-badge.rejected {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .action-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+</style>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+
+    <!-- Left Column -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+        <div class="info-card" style="border-left: 4px solid var(--primary-color);">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #1e293b;">
+                        Request to become <span style="color: var(--primary-color);">
+                            {{host_request.get_requested_type_display }}</span>
+                    </h1>
+                    <div style="margin-top: 8px; color: #64748b; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-regular fa-clock"></i> Submitted on
+                        {{ host_request.created_at|date:"F d, Y at H:i"}}
+                    </div>
+                </div>
+                <div>
+                    {% if host_request.status == 'approved' %}
+                    <span class="status-badge approved"><i class="fa-solid fa-check"></i> Approved</span>
+                    {% elif host_request.status == 'rejected' %}
+                    <span class="status-badge rejected"><i class="fa-solid fa-xmark"></i> Rejected</span>
+                    {% else %}
+                    <span class="status-badge pending"><i class="fa-solid fa-hourglass-start"></i> Pending Review</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <h3 class="card-title"><i class="fa-solid fa-quote-left"></i> User's Note</h3>
+                <div
+                    style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px dashed #cbd5e1; color: #334155; line-height: 1.6;">
+                    {% if host_request.note %}
+                    {{ host_request.note|linebreaksbr }}
+                    {% else %}
+                    <em style="color: #94a3b8;">No note provided by the user.</em>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if host_request.status == 'rejected' and host_request.rejection_reason %}
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                <h3 class="card-title" style="color: #b91c1c;"><i class="fa-solid fa-triangle-exclamation"></i>
+                    Rejection Reason</h3>
+                <div style="background: #fee2e2; padding: 1rem; border-radius: 8px; color: #b91c1c;">
+                    {{ host_request.rejection_reason }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Right Column -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+        <!-- Applicant Card -->
+        <div class="info-card">
+            <h3 class="card-title"><i class="fa-solid fa-user"></i> Applicant</h3>
+            <div
+                style="display: flex; align-items: center; gap: 12px; padding-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; margin-bottom: 1.5rem;">
+                <div
+                    style="width: 56px; height: 56px; background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 1.5rem;">
+                    {{ host_request.user.full_name|first|upper }}
+                </div>
+                <div>
+                    <div style="font-weight: 700; color: #1e293b; font-size: 1.1rem;">{{ host_request.user.full_name }}
+                    </div>
+                    <div style="font-size: 0.85rem; color: #64748b;">
+                        {{host_request.user.email|default:host_request.user.phone_number }}</div>
+                </div>
+            </div>
+
+            <div style="display: grid; gap: 1rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #64748b; font-size: 0.9rem;">Current Role</span>
+                    <span style="font-weight: 600; color: #1e293b;">{{ host_request.user.get_user_type_display }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #64748b; font-size: 0.9rem;">Joined</span>
+                    <span style="font-weight: 600; color: #1e293b;">
+                        {{ host_request.user.date_joined|date:"M Y"}}</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <a href="{% url 'admin_user_detail' host_request.user.pk %}" class="action-btn"
+                    style="border: 1px solid #cbd5e1; color: #475569; text-decoration: none;">
+                    View User Profile <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Action Card -->
+        {% if host_request.status == 'pending' %}
+        <div class="info-card" style="border-top: 4px solid #f59e0b;">
+            <h3 class="card-title" style="color: #d97706;"><i class="fa-solid fa-gavel"></i> Take Action</h3>
+            <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.5rem;">
+                Review the request details carefully before making a decision.
+            </p>
+
+            <form action="{% url 'admin_host_request_approve' host_request.pk %}" method="post"
+                style="margin-bottom: 1rem;">
+                {% csrf_token %}
+                <div style="margin-bottom: 1rem;">
+                    <label for="id_host_category"
+                        style="display: block; font-size: 0.875rem; color: #64748b; margin-bottom: 4px;">Assign Host
+                        Category <span style="color: red;">*</span></label>
+                    <select name="host_category" id="id_host_category" required
+                        style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; color: #1e293b; background-color: white;">
+                        <option value="">Select a Category</option>
+                        {% for category in host_categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% empty %}
+                        <option value="" disabled>No categories available</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="action-btn" style="background: #22c55e; color: white; border: none;">
+                    <i class="fa-solid fa-check"></i> Approve & Upgrade
+                </button>
+            </form>
+
+            <form action="{% url 'admin_host_request_reject' host_request.pk %}" method="post">
+                {% csrf_token %}
+                <textarea name="rejection_reason" placeholder="Reason for rejection (required)..." required
+                    style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 10px; font-family: inherit; resize: vertical; min-height: 80px; box-sizing: border-box;"></textarea>
+                <button type="submit" class="action-btn" style="background: #ef4444; color: white; border: none;">
+                    <i class="fa-solid fa-xmark"></i> Reject Request
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+"""
+URL configuration for event_project project.
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/6.0/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path, include
+from django.views.generic import TemplateView
+from events.views import ContactUsView
+
+urlpatterns = [
+    # path('admin/', admin.site.urls), # Disable default admin
+    path('admin/', include('events.admin_urls')), # Custom Admin
+    path('api/', include('events.urls')),
+    
+    # Landing & Static Pages
+    path('', TemplateView.as_view(template_name='events/landing.html'), name='root_landing'),
+    path('privacy-policy/', TemplateView.as_view(template_name='events/privacy.html'), name='privacy_policy'),
+    path('terms-and-conditions/', TemplateView.as_view(template_name='events/terms.html'), name='terms_conditions'),
+    path('contact-us/', ContactUsView.as_view(), name='contact_us'),
+    
+    path('', include('events.urls')),
+]
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

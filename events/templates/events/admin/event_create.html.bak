@@ -1,0 +1,358 @@
+{% extends 'events/admin/base_admin.html' %}
+
+{% block title %}{% if is_edit %}Edit Event{% else %}Create Event{% endif %} - Pluuto Admin{% endblock %}
+{% block page_title %}{% if is_edit %}Edit Event: {{ object.title }}{% else %}Create New Event{% endif %}{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="info-card" style="max-width: 800px; margin: 0 auto;">
+        <h3 class="card-title">{% if is_edit %}Edit Event Details{% else %}Event Details{% endif %}</h3>
+
+        <form method="post" enctype="multipart/form-data" id="eventForm">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div
+                style="margin-bottom: 1.5rem; padding: 1rem; background-color: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; color: #b91c1c;">
+                <p style="font-weight: 600; margin-bottom: 0.5rem;">Please fix the following errors:</p>
+                <ul style="list-style-type: disc; padding-left: 1.5rem; margin: 0;">
+                    {% for field in form %}
+                    {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <!-- Full Width Fields -->
+                <div style="grid-column: 1 / -1;">
+                    <label class="form-label">Event Title</label>
+                    {{ form.title }}
+                </div>
+
+                <div style="grid-column: 1 / -1;">
+                    <label class="form-label">Description</label>
+                    {{ form.description }}
+                </div>
+
+                <!-- Category & Location -->
+                <div>
+                    <label class="form-label">Category</label>
+                    {{ form.category }}
+                </div>
+                <div>
+                    <label class="form-label">Location</label>
+                    {{ form.location }}
+                </div>
+
+                <!-- Time -->
+                <div>
+                    <label class="form-label">Event Date</label>
+                    {{ form.event_date }}
+                </div>
+                <div>
+                    <label class="form-label">Last Booking Date</label>
+                    {{ form.booking_expiry_date }}
+                </div>
+                <div>
+                    <label class="form-label">Start Time (24h)</label>
+                    {{ form.start_time }}
+                </div>
+                <div>
+                    <label class="form-label">Duration</label>
+                    {{ form.duration }}
+                </div>
+
+                <!-- Pricing -->
+                <div>
+                    <label class="form-label">Payment Type</label>
+                    {{ form.payment_type }}
+                </div>
+                <div hidden>
+                    <label class="form-label">Max Capacity (0 for unlimited)</label>
+                    {{ form.maximum_capacity }}
+                </div>
+
+                <div id="regularPriceDiv">
+                    <label class="form-label">Regular Price</label>
+                    {{ form.regular_price }}
+                </div>
+                <div id="offerPriceDiv">
+                    <label class="form-label">Offer Price</label>
+                    {{ form.offer_price }}
+                </div>
+
+                <!-- Artists & Collabs -->
+                <div>
+                    <label class="form-label">Artist/Performer</label>
+                    {{ form.artist_performer }}
+                </div>
+                <div>
+                    <label class="form-label">Collaborator Invite</label>
+                    {{ form.collaborator_invite }}
+                </div>
+
+                <!-- Files -->
+                <div>
+                    <label class="form-label">Banner Image</label>
+                    {{ form.banner_image }}
+                </div>
+                <div>
+                    <label class="form-label">Terms Document</label>
+                    {{ form.terms_document }}
+                </div>
+
+                <div style="grid-column: 1 / -1;">
+                    <label class="form-label">Gallery Images</label>
+                    {{ form.gallery_images }}
+                    {% if is_edit and object.gallery_images.exists %}
+                    <div style="margin-top: 10px; font-size: 0.85rem; color: var(--text-secondary);">
+                        Currently: {{ object.gallery_images.count }} images. Uploading more will append.
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Payment Link -->
+                <div style="grid-column: 1 / -1;">
+                    <label class="form-label">Payment Link</label>
+                    {{ form.payment_link }}
+                </div>
+
+                <!-- Extra -->
+                <div style="grid-column: 1 / -1;">
+                    <label class="form-label">Extra Text</label>
+                    {{ form.extra_text }}
+                </div>
+
+                <!-- Rewards -->
+                <div>
+                    <label class="form-label">Attendee Coins</label>
+                    {{ form.attendee_coins }}
+                </div>
+
+                <!-- Scratch Prizes Section - Only show when creating new event -->
+                {% if not is_edit %}
+                <div style="grid-column: 1 / -1; margin-top: 1rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <label class="form-label" style="margin: 0;">Scratch Prizes</label>
+                        <button type="button" id="addPrizeBtn" class="action-btn btn-primary"
+                            style="padding: 6px 12px; font-size: 12px;">
+                            <i class="fa-solid fa-plus"></i> Add Prize
+                        </button>
+                    </div>
+
+                    <div id="prizesContainer" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- Existing prizes when editing -->
+                        {% if is_edit and object.scratch_prize_items.all %}
+                        {% for prize in object.scratch_prize_items.all %}
+                        <div class="prize-item"
+                            style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: #f8fafc;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <h4 style="margin: 0; font-size: 14px; font-weight: 600;">Prize Item</h4>
+                                <button type="button" class="removePrizeBtn action-btn btn-outline"
+                                    style="padding: 4px 8px; font-size: 12px; color: #dc2626;">
+                                    <i class="fa-solid fa-trash"></i> Remove
+                                </button>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                <div style="grid-column: 1 / -1;">
+                                    <label
+                                        style="font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Prize
+                                        Image</label>
+                                    {% if prize.image %}
+                                    <div style="margin-bottom: 8px;">
+                                        <img src="{{ prize.image.url }}"
+                                            style="width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 2px solid #e2e8f0;">
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" name="prize_image_[]" class="form-file" accept="image/*">
+                                </div>
+                                <div>
+                                    <label
+                                        style="font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Title</label>
+                                    <input type="text" name="prize_title_[]" class="form-input"
+                                        value="{{ prize.title }}" placeholder="Prize Title" required>
+                                </div>
+                                <div>
+                                    <input type="text" name="prize_code_[]" class="form-input" value="{{ prize.code }}"
+                                        placeholder="Prize Code">
+                                </div>
+                                <div>
+                                    <label
+                                        style="font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Expiry
+                                        Date</label>
+                                    <input type="date" name="prize_expiry_date_[]" class="form-input"
+                                        value="{{ prize.expiry_date|date:'Y-m-d' }}">
+                                </div>
+                                <div style="grid-column: 1 / -1;">
+                                    <label
+                                        style="font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Description</label>
+                                    <textarea name="prize_description_[]" class="form-textarea" rows="2"
+                                        placeholder="Prize Description">{{ prize.description }}</textarea>
+                                </div>
+                                <div style="grid-column: 1 / -1;">
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox" name="prize_is_better_luck_[]" value="1" {% if
+                                            prize.is_better_luck %}checked{% endif %}
+                                            style="width: 16px; height: 16px;">
+                                        <span
+                                            style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Better
+                                            Luck Next Time</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                        <!-- Prizes will be added here dynamically -->
+                    </div>
+
+                    <!-- Hidden template for prize item -->
+                    <template id="prizeTemplate">
+                        <div class="prize-item"
+                            style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: #f8fafc;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <h4 style="margin: 0; font-size: 14px; font-weight: 600;">Prize Item</h4>
+                                <button type="button" class="removePrizeBtn action-btn btn-outline"
+                                    style="padding: 4px 8px; font-size: 12px; color: #dc2626;">
+                                    <i class="fa-solid fa-trash"></i> Remove
+                                </button>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                <div style="grid-column: 1 / -1;">
+                                    <label
+                                        style="font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Prize
+                                        Image</label>
+                                    <input type="file" name="prize_image_[]" class="form-file" accept="image/*">
+                                </div>
+                                <div>
+                                    <label
+                                        style="font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Title</label>
+                                    <input type="text" name="prize_title_[]" class="form-input"
+                                        placeholder="Prize Title" required>
+                                </div>
+                                <div>
+                                    <input type="text" name="prize_code_[]" class="form-input" placeholder="Prize Code">
+                                </div>
+                                <div>
+                                    <label
+                                        style="font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Expiry
+                                        Date</label>
+                                    <input type="date" name="prize_expiry_date_[]" class="form-input">
+                                </div>
+                                <div style="grid-column: 1 / -1;">
+                                    <label
+                                        style="font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Description</label>
+                                    <textarea name="prize_description_[]" class="form-textarea" rows="2"
+                                        placeholder="Prize Description"></textarea>
+                                </div>
+                                <div style="grid-column: 1 / -1;">
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox" name="prize_is_better_luck_[]" value="1"
+                                            style="width: 16px; height: 16px;">
+                                        <span
+                                            style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Better
+                                            Luck Next Time</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                {% endif %}
+
+                <!-- Keep old scratch prizes field hidden for backward compatibility -->
+                <div style="grid-column: 1 / -1; display: none;">
+                    {{ form.scratch_prizes }}
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button type="submit" class="action-btn btn-primary">{% if is_edit %}Update Event{% else %}Create
+                    Event{% endif %}</button>
+                <a href="{% if is_edit %}{% url 'admin_event_detail' object.pk %}{% else %}{% url 'admin_event_list' %}{% endif %}"
+                    class="action-btn btn-outline" style="text-decoration: none;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const paymentTypeSelect = document.getElementById('id_payment_type');
+        const regularPriceInput = document.getElementById('id_regular_price');
+        const offerPriceInput = document.getElementById('id_offer_price');
+        const addPrizeBtn = document.getElementById('addPrizeBtn');
+        const prizesContainer = document.getElementById('prizesContainer');
+        const prizeTemplate = document.getElementById('prizeTemplate');
+
+        // Handle payment type change
+        function handlePaymentTypeChange() {
+            if (paymentTypeSelect.value === 'free') {
+                regularPriceInput.value = '0';
+                offerPriceInput.value = '0';
+                regularPriceInput.readOnly = true;
+                offerPriceInput.readOnly = true;
+                regularPriceInput.style.backgroundColor = '#f3f4f6';
+                offerPriceInput.style.backgroundColor = '#f3f4f6';
+            } else {
+                regularPriceInput.readOnly = false;
+                offerPriceInput.readOnly = false;
+                regularPriceInput.style.backgroundColor = '';
+                offerPriceInput.style.backgroundColor = '';
+            }
+        }
+
+        // Initialize on page load
+        handlePaymentTypeChange();
+
+        // Listen for changes
+        paymentTypeSelect.addEventListener('change', handlePaymentTypeChange);
+
+        // Prize functionality (only when creating new event)
+        if (addPrizeBtn && prizesContainer && prizeTemplate) {
+            // Add prize functionality
+            addPrizeBtn.addEventListener('click', function () {
+                const clone = prizeTemplate.content.cloneNode(true);
+                prizesContainer.appendChild(clone);
+
+                // Add remove functionality to the newly added item
+                const items = prizesContainer.querySelectorAll('.prize-item');
+                const lastItem = items[items.length - 1];
+                const removeBtn = lastItem.querySelector('.removePrizeBtn');
+
+                removeBtn.addEventListener('click', function () {
+                    lastItem.remove();
+                });
+            });
+
+            // Add remove functionality to existing prizes (when editing)
+            document.querySelectorAll('.removePrizeBtn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    if (confirm('Are you sure you want to remove this prize?')) {
+                        this.closest('.prize-item').remove();
+                    }
+                });
+            });
+
+            // Add one "Better Luck Next Time" prize by default (only for new events)
+            if (prizesContainer.children.length === 0) {
+                addPrizeBtn.click();
+                const firstPrize = prizesContainer.querySelector('.prize-item');
+                const betterLuckCheckbox = firstPrize.querySelector('input[name="prize_is_better_luck_[]"]');
+                const titleInput = firstPrize.querySelector('input[name="prize_title_[]"]');
+                betterLuckCheckbox.checked = true;
+                titleInput.value = 'Better Luck Next Time';
+            }
+        }
+    });
+</script>
+{% endblock %}

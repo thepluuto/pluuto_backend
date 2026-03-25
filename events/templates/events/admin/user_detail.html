@@ -1,0 +1,299 @@
+{% extends 'events/admin/base_admin.html' %}
+
+{% block title %}User Details - Pluuto Admin{% endblock %}
+{% block page_title %}User Details{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 3fr 1fr; gap: 24px;">
+
+    <!-- Left Column (User Info) -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        <div class="table-container">
+            <div class="description-header">
+                User Information
+            </div>
+            <div style="padding: 24px;">
+                <div
+                    style="display: flex; align-items: center; gap: 24px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border-color);">
+                    <div class="profile-avatar" style="width: 80px; height: 80px; font-size: 32px;">
+                        {% if object.full_name %}
+                        {{ object.full_name|first|upper }}
+                        {% else %}
+                        U
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h2 style="font-size: 24px; margin-bottom: 4px; color: var(--text-primary);">
+                            {% if object.full_name %}
+                            {{ object.full_name }}
+                            {% else %}
+                            No Name
+                            {% endif %}
+                        </h2>
+                        <div style="color: var(--text-secondary);">User ID: {{ object.id }}</div>
+                        {% if object.is_blocked %}
+                        <span class="badge badge-danger" style="margin-top: 8px;">Blocked</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px; color: var(--text-secondary);">PHONE
+                            NUMBER</label>
+                        <div style="font-size: 14px;">{{ object.phone_number|default:"Not provided" }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px; color: var(--text-secondary);">EMAIL</label>
+                        <div style="font-size: 14px;">{{ object.email|default:"Not provided" }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px; color: var(--text-secondary);">USER
+                            TYPE</label>
+                        <div style="font-size: 14px; text-transform: capitalize;">{{ object.get_user_type_display }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px; color: var(--text-secondary);">AUTH
+                            PROVIDER</label>
+                        <div style="font-size: 14px; text-transform: capitalize;">{{ object.auth_provider }}</div>
+                    </div>
+                    {% if object.user_type != 'regular' %}
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px; color: var(--text-secondary);">HOST
+                            NAME</label>
+                        <div style="font-size: 14px;">{{ object.host_name|default:"-" }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px; color: var(--text-secondary);">HOST
+                            CATEGORY</label>
+                        <div style="font-size: 14px;">{{ object.host_category.name|default:"-" }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px; color: var(--text-secondary);">HOST
+                            LOCATION</label>
+                        <div style="font-size: 14px;">{{ object.host_location|default:"-" }}</div>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label" style="font-size: 12px; color: var(--text-secondary);">HOST
+                            BIO</label>
+                        <div style="font-size: 14px;">{{ object.host_bio|default:"-"|linebreaksbr }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px; color: var(--text-secondary);">HOST
+                            VERIFIED</label>
+                        <div style="font-size: 14px;">
+                            {% if object.is_verified_host %}
+                            <span class="badge badge-success"
+                                style="background-color: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Verified</span>
+                            {% else %}
+                            <span class="badge badge-warning"
+                                style="background-color: #fef9c3; color: #854d0e; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Not
+                                Verified</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px; color: var(--text-secondary);">JOINED
+                            ON</label>
+                        <div style="font-size: 14px;">{{ object.date_joined|date:"M d, Y" }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px; color: var(--text-secondary);">LAST
+                            LOGIN</label>
+                        <div style="font-size: 14px;">{{ object.last_login|date:"M d, Y"|default:"Never" }}</div>
+                    </div>
+                </div>
+
+                {% if object.is_blocked and object.block_reason %}
+                <div
+                    style="margin-top: 20px; padding: 16px; background: #fee; border-left: 4px solid var(--danger-color); border-radius: 8px;">
+                    <label class="form-label"
+                        style="font-size: 12px; color: var(--danger-color); margin-bottom: 8px;">BLOCK REASON</label>
+                    <div style="font-size: 14px; color: var(--text-primary);">{{ object.block_reason }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column (Actions) -->
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="table-container">
+            <div class="description-header">
+                Actions
+            </div>
+            <div style="padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+                {% if object.user_type != 'regular' %}
+                {% if object.is_verified_host %}
+                <form method="post" action="{% url 'admin_host_unverify' object.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn btn-warning"
+                        style="width: 100%; background-color: #f59e0b; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">
+                        <i class="fa-solid fa-xmark"></i> Unverify Host
+                    </button>
+                </form>
+                {% else %}
+                <form method="post" action="{% url 'admin_host_verify' object.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn btn-success"
+                        style="width: 100%; background-color: #10b981; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">
+                        <i class="fa-solid fa-check-circle"></i> Verify Host
+                    </button>
+                </form>
+                {% endif %}
+                <div style="border-bottom: 1px solid var(--border-color); margin: 4px 0;"></div>
+                {% endif %}
+
+                {% if not object.is_blocked %}
+                <button onclick="showBlockModal()" class="action-btn btn-danger" style="width: 100%;">
+                    <i class="fa-solid fa-ban"></i> Block User
+                </button>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                    Prevent this user from logging in.
+                </div>
+                {% else %}
+                <form method="post" action="{% url 'admin_user_unblock' object.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn btn-primary" style="width: 100%;">
+                        <i class="fa-solid fa-check"></i> Unblock User
+                    </button>
+                </form>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                    Allow this user to log in again.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Created Events List (Full Width) -->
+<div class="table-container" style="margin-top: 24px;">
+    <div class="description-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Created Events</span>
+        <span style="font-size: 0.75rem; background: #f1f5f9; color: #64748b; padding: 2px 8px; border-radius: 12px;">
+            {{ user_events|length }}</span>
+    </div>
+
+    {% if user_events %}
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <th
+                        style="text-align: left; padding: 12px 24px; font-size: 12px; color: var(--text-secondary); font-weight: 600;">
+                        EVENT</th>
+                    <th
+                        style="text-align: left; padding: 12px 24px; font-size: 12px; color: var(--text-secondary); font-weight: 600;">
+                        DATE</th>
+                    <th
+                        style="text-align: left; padding: 12px 24px; font-size: 12px; color: var(--text-secondary); font-weight: 600;">
+                        STATUS</th>
+                    <th
+                        style="text-align: right; padding: 12px 24px; font-size: 12px; color: var(--text-secondary); font-weight: 600;">
+                        ACTION</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in user_events %}
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 16px 24px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            {% if event.banner_image %}
+                            <img src="{{ event.banner_image.url }}"
+                                style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover;">
+                            {% else %}
+                            <div
+                                style="width: 40px; height: 40px; border-radius: 6px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                                <i class="fa-solid fa-image"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <div style="font-weight: 500; color: var(--text-primary);">{{ event.title }}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">{{ event.category.name }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="padding: 16px 24px; color: var(--text-secondary); font-size: 14px;">
+                        {{ event.event_date|date:"M j, Y" }}
+                    </td>
+                    <td style="padding: 16px 24px;">
+                        {% if event.status == 'approved' %}
+                        <span class="badge badge-success">Live</span>
+                        {% elif event.status == 'rejected' %}
+                        <span class="badge badge-danger">Rejected</span>
+                        {% elif event.status == 'blocked' %}
+                        <span class="badge badge-danger">Blocked</span>
+                        {% else %}
+                        <span class="badge badge-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 16px 24px; text-align: right;">
+                        <a href="{% url 'admin_event_detail' event.pk %}" class="action-btn btn-outline"
+                            style="display: inline-flex; width: auto; padding: 6px 12px; font-size: 12px;">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="padding: 3rem; text-align: center; color: var(--text-secondary);">
+        <i class="fa-regular fa-calendar-xmark" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+        <p>No events created by this user.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div id="blockModal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div
+        style="background: var(--card-bg); border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <h3 style="margin: 0 0 1rem 0; color: var(--text-primary); font-size: 20px;">
+            <i class="fa-solid fa-ban"></i> Block User
+        </h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Block <strong>{% if object.full_name %}{{ object.full_name }}{% else %}this user{% endif %}</strong> from
+            logging in. Please provide a reason.
+        </p>
+
+        <form method="post" action="{% url 'admin_user_block' object.pk %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Block Reason</label>
+                <textarea name="block_reason" class="form-control" rows="4" required
+                    placeholder="Enter reason for blocking this user..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem; justify-content: flex-end;">
+                <button type="button" onclick="hideBlockModal()" class="action-btn btn-outline">Cancel</button>
+                <button type="submit" class="action-btn btn-danger">
+                    <i class="fa-solid fa-ban"></i> Block User
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showBlockModal() {
+        document.getElementById('blockModal').style.display = 'flex';
+    }
+
+    function hideBlockModal() {
+        document.getElementById('blockModal').style.display = 'none';
+    }
+
+    document.getElementById('blockModal').addEventListener('click', function (e) {
+        if (e.target === this) {
+            hideBlockModal();
+        }
+    });
+</script>
+{% endblock %}

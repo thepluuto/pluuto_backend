@@ -1,0 +1,311 @@
+{% extends 'events/admin/base_admin.html' %}
+
+{% block title %}Dashboard - Pluuto Admin{% endblock %}
+{% block page_title %}Overview{% endblock %}
+
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<!-- 1. Stats Grid -->
+<div class="stats-grid">
+    <!-- Total Users -->
+    <a href="{% url 'admin_user_list' %}" class="stat-card gradient-purple">
+        <div class="stat-header">
+            <div class="stat-icon"><i class="fa-regular fa-user"></i></div>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">{{ total_users }}</div>
+        </div>
+    </a>
+
+    <!-- Upcoming Events -->
+    <a href="{% url 'admin_event_list' %}?status=approved" class="stat-card gradient-green">
+        <div class="stat-header">
+            <div class="stat-icon"><i class="fa-regular fa-calendar-check"></i></div>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Upcoming Events</div>
+            <div class="stat-value">{{ upcoming_events_count }}</div>
+        </div>
+    </a>
+
+    <!-- Approval Pending Events -->
+    <a href="{% url 'admin_event_list' %}?status=pending" class="stat-card gradient-blue">
+        <div class="stat-header">
+            <div class="stat-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Approval Pending Events</div>
+            <div class="stat-value">{{ approval_pending_events_count }}</div>
+        </div>
+    </a>
+
+    <!-- Pending Host Requests -->
+    <a href="{% url 'admin_host_request_list' %}?status=pending" class="stat-card gradient-orange">
+        <div class="stat-header">
+            <div class="stat-icon"><i class="fa-solid fa-user-clock"></i></div>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Pending Host Request</div>
+            <div class="stat-value">{{ pending_host_requests_count }}</div>
+        </div>
+    </a>
+</div>
+
+<!-- 2. Split Tables (Today & Expired) -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+    <!-- Left: Today's Events -->
+    <div class="table-container" style="margin-top: 0;">
+        <div class="description-header">
+            <i class="fa-solid fa-calendar-day"></i> Today's Events
+        </div>
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Event</th>
+                    <!-- <th>Time</th> -->
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in todays_events %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;">{{ event.title }}</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">{{ event.owner.full_name }}</div>
+                    </td>
+                    <!-- <td>{{ event.start_time }}</td> -->
+                    <td>
+                        <span class="status-badge status-{{ event.status }}">{{ event.get_status_display }}</span>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'admin_event_detail' event.pk %}" class="action-btn btn-outline"
+                            style="padding: 4px 10px; font-size: 11px;">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 1rem;">No events today.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Right: Expired Pending Finish -->
+    <div class="table-container" style="margin-top: 0;">
+        <div class="description-header">
+            <i class="fa-solid fa-clock-rotate-left"></i> Expired (Pending Finish)
+        </div>
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Date</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in expired_pending_finish_events %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;">{{ event.title }}</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">{{ event.owner.full_name }}</div>
+                    </td>
+                    <td>{{ event.event_date|date:"M d, Y" }}</td>
+                    <td style="text-align: right;">
+                        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                            <a href="{% url 'admin_event_detail' event.pk %}" class="action-btn btn-outline"
+                                style="padding: 4px 10px; font-size: 11px;">View</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="text-align: center; padding: 1rem;">No pending finish events.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 3. Charts Section -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+    <div class="stat-card" style="height: auto; cursor: default; background: white; padding: 1.5rem;">
+        <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">User Growth (7
+            Days)</h3>
+        <div style="position: relative; height: 250px; width: 100%;">
+            <canvas id="usersChart"></canvas>
+        </div>
+    </div>
+    <div class="stat-card" style="height: auto; cursor: default; background: white; padding: 1.5rem;">
+        <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">Bookings Trend
+            (7 Days)</h3>
+        <div style="position: relative; height: 250px; width: 100%;">
+            <canvas id="bookingsChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Recent Activity & Actions (Restored) -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+    <!-- Recent Activity Table -->
+    <div class="table-container" style="margin-top: 0;">
+        <div class="description-header">
+            <i class="fa-solid fa-clock-rotate-left"></i> Recent Activity
+        </div>
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Date</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in recent_users %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div
+                                style="width: 32px; height: 32px; background: #e0e7ff; color: #4f46e5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px;">
+                                {{ user.full_name|slice:":1"|default:"U"|upper }}
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--text-primary);">
+                                    {% firstof user.full_name user.phone_number %}
+                                </div>
+                                <div style="color: var(--text-secondary); font-size: 11px;">New Registration</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color: var(--text-secondary);">{{ user.date_joined|date:"M d, Y" }}</td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'admin_user_detail' user.pk %}" class="action-btn btn-outline"
+                            style="padding: 4px 10px; font-size: 11px;">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="text-align: center; padding: 2rem;">No recent activity.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Quick Actions / Mini List -->
+    <div class="stat-card" style="height: auto; padding: 0; overflow: hidden;">
+        <div class="description-header" style="border-bottom: 1px solid var(--border-color); padding: 1.25rem;">
+            <i class="fa-solid fa-bolt"></i> Pending Actions
+        </div>
+        <div style="padding: 1rem;">
+            {% if pending_host_requests > 0 %}
+            <div
+                style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; background: #fff7ed; border-radius: 8px; margin-bottom: 0.5rem; border: 1px solid #ffedd5;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-user-clock" style="color: #ea580c;"></i>
+                    <span style="font-size: 13px; font-weight: 500; color: #9a3412;">{{ pending_host_requests }} Host
+                        Requests</span>
+                </div>
+                <a href="{% url 'admin_host_request_list' %}?status=pending"
+                    style="font-size: 12px; font-weight: 600; color: #ea580c;">Review</a>
+            </div>
+            {% endif %}
+
+            {% if pending_events > 0 %}
+            <div
+                style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; background: #ecfdf5; border-radius: 8px; margin-bottom: 0.5rem; border: 1px solid #d1fae5;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-regular fa-calendar-check" style="color: #059669;"></i>
+                    <span style="font-size: 13px; font-weight: 500; color: #065f46;">{{ pending_events }} Event
+                        Approvals</span>
+                </div>
+                <a href="{% url 'admin_event_list' %}?status=pending"
+                    style="font-size: 12px; font-weight: 600; color: #059669;">Review</a>
+            </div>
+            {% endif %}
+
+            {% if pending_host_requests == 0 and pending_events == 0 %}
+            <div style="text-align: center; color: var(--text-secondary); padding: 2rem 0;">
+                <i class="fa-solid fa-check-circle"
+                    style="font-size: 24px; color: var(--success-color); margin-bottom: 8px;"></i>
+                <p style="font-size: 13px;">All caught up!</p>
+            </div>
+            {% endif %}
+
+            <a href="{% url 'event-create' %}" class="action-btn btn-primary btn-block" style="margin-top: 1rem;">
+                <i class="fa-solid fa-plus"></i> Create New Event
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log("Initializing Charts...");
+        console.log("Labels:", {{ graph_labels| safe }});
+
+    // Users Chart
+    const userCtx = document.getElementById('usersChart');
+    if (userCtx) {
+        new Chart(userCtx, {
+            type: 'line',
+            data: {
+                labels: {{ graph_labels| safe }},
+    datasets: [{
+        label: 'New Users',
+        data: {{ graph_users_data| safe }},
+        borderColor: '#4f46e5', // indigo-600
+        tension: 0.4,
+        borderWidth: 2,
+        fill: true,
+        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+        pointBackgroundColor: '#4f46e5'
+                    }]
+                },
+    options: {
+        responsive: true,
+            maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } },
+            x: { grid: { display: false } }
+        },
+        interaction: { intersect: false, mode: 'index' }
+    }
+            });
+        }
+
+    // Bookings Chart
+    const bookingCtx = document.getElementById('bookingsChart');
+    if (bookingCtx) {
+        new Chart(bookingCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ graph_labels| safe }},
+    datasets: [{
+        label: 'Bookings',
+        data: {{ graph_bookings_data| safe }},
+        backgroundColor: '#10b981', // emerald-500
+        borderRadius: 4,
+        barThickness: 20
+                    }]
+                },
+    options: {
+        responsive: true,
+            maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } },
+            x: { grid: { display: false } }
+        }
+    }
+            });
+        }
+    });
+</script>
+{% endblock %}
