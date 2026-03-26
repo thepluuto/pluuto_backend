@@ -108,7 +108,15 @@
             <tr>
                 <td style="color: var(--text-secondary);">#{{ user.id }}</td>
                 <td>
-                    <div style="font-weight: 600; color: var(--text-primary);">{{ user.full_name|default:"-" }}</div>
+                    <div style="font-weight: 600; color: var(--text-primary);">
+                        {% if user.full_name and user.full_name != '-' %}
+                            {{ user.full_name }}
+                        {% elif user.is_superuser or user.user_type == 'admin' %}
+                            Administrator
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
                 </td>
                 <td>
                     <div>{{ user.phone_number }}</div>

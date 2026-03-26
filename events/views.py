@@ -563,24 +563,37 @@ class AdminUserPromoteView(LoginRequiredMixin, View):
         # Handle regular user (demotion or just switch) - no category needed
         if new_user_type == 'regular':
             user.user_type = new_user_type
-            user.host_category = None # Clear category if going back to regular? Or keep it? Clearing seems safer.
+            user.host_category = None
+            user.is_staff = False
+            user.is_superuser = False
             user.save()
-            messages.success(request, f'User {user.full_name} demoted to Regular User.')
+            messages.success(request, f'User {user.full_name|default:"User"} demoted to Regular User.')
             return redirect('admin_user_list')
             
-        # Handle host types - check category
-        if host_category_id:
-             try:
-                 category = HostCategory.objects.get(pk=host_category_id)
-                 user.host_category = category
-             except HostCategory.DoesNotExist:
-                 messages.warning(request, 'Selected Host Category invalid. User promoted without category.')
+        # Handle admin user
+        if new_user_type == 'admin':
+            user.is_staff = True
+            user.is_superuser = True
+            if not user.full_name or user.full_name == '-':
+                user.full_name = 'Administrator'
+            user.set_password('admin@123')
+            user.host_category = None
+        else:
+            # Handle other host types
+            user.is_staff = False
+            user.is_superuser = False
+            if host_category_id:
+                 try:
+                     category = HostCategory.objects.get(pk=host_category_id)
+                     user.host_category = category
+                 except HostCategory.DoesNotExist:
+                     messages.warning(request, 'Selected Host Category invalid. User promoted without category.')
         
         user.user_type = new_user_type
         user.save()
         
         cat_msg = f" in category {user.host_category.name}" if user.host_category else ""
-        messages.success(request, f'User {user.full_name} promoted to {user.get_user_type_display()}{cat_msg}.')
+        messages.success(request, f'User {user.full_name|default:"Administrator"} promoted to {user.get_user_type_display()}{cat_msg}.')
         return redirect('admin_user_list')
 
     def form_valid(self, form):

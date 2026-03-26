@@ -24,8 +24,10 @@
                     </div>
                     <div>
                         <h2 style="font-size: 24px; margin-bottom: 4px; color: var(--text-primary);">
-                            {% if object.full_name %}
+                            {% if object.full_name and object.full_name != '-' %}
                             {{ object.full_name }}
+                            {% elif object.is_superuser or object.user_type == 'admin' %}
+                            Administrator
                             {% else %}
                             No Name
                             {% endif %}

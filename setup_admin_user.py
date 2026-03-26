@@ -16,6 +16,7 @@ try:
     
     user, created = User.objects.get_or_create(phone_number=phone)
     user.email = email
+    user.full_name = 'Administrator'
     user.set_password(password)
     user.user_type = 'admin'
     user.is_staff = True
